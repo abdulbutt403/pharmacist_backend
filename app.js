@@ -41,4 +41,8 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+app.listen(9000 || process.env.PORT, () => {
+  console.log("server is running on port 9000");
+});
+
 module.exports = app;
