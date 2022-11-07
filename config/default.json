@@ -1,1 +1,4 @@
-{"mongoURI": "mongodb+srv://abdul:butt3334@cluster0.fowt8kp.mongodb.net/?retryWrites=true&w=majority"}
+{
+    "mongoURI": "mongodb+srv://abdul:butt3334@cluster0.fowt8kp.mongodb.net/?retryWrites=true&w=majority",
+    "jwtsecret": "8DCDwFdTDQ5aOWC2"
+}
