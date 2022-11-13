@@ -19,6 +19,22 @@ const PharmacistSchema = new Schema(
       type: String,
       default: "",
     },
+    Medicines: [
+      {
+        Title: {
+          type: String,
+          required: true,
+        },
+        Quantity: {
+          type: Number,
+          required: true,
+        },
+        Price: {
+          type: Number,
+          default: true,
+        },
+      },
+    ],
     orders: [
       {
         state: {

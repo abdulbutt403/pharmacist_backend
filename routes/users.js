@@ -75,4 +75,39 @@ router.post("/login", async (req, res) => {
   });
 });
 
+
+router.post("/addpharmacy", async (req, res) => {
+  const { email, password, address, fullName , Medicines} = req.body;
+  let result = await Pharmacist.create({ email, password, fullName, address});
+  res.send({result})
+})
+
+
+router.get("/pharmacy", async (req, res) => {
+  let result = await Pharmacist.find();
+  res.json({result})
+})
+
+
+router.post('/addMedicine', async (req, res) => {
+  const {pharmacyId,Title,Quantity,Price} = req.body;
+  try {
+    let test = await Pharmacist.findById(pharmacyId)
+
+     if(test.Medicines.some(e => e.Title === Title)){
+      res.send("Already Exist");
+     }
+     else{
+      test.Medicines.unshift({Title,Quantity,Price})
+      await test.save();
+      res.status(200).send("Medicine Entered.");
+     }
+    
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+
+});
+
 module.exports = router;
