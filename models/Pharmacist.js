@@ -41,11 +41,15 @@ const PharmacistSchema = new Schema(
           type: String, //PENDING,DELIVERED
           required: true,
         },
-        patientName: {
+        patientEmail: {
           type: String,
           required: true,
         },
-        patientEmail: {
+        pharmacyId: {
+          type: String,
+          required: true,
+        },
+        pharmacyName: {
           type: String,
           required: true,
         },

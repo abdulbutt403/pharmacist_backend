@@ -41,13 +41,21 @@ const PatientSchema = new Schema(
           type: String, //PENDING,DELIVERED
           required: true,
         },
-        patientName: {
-          type: String,
-          required: true,
-        },
         patientEmail: {
           type: String,
           required: true,
+        },
+        pharmacyId: {
+          type: String,
+          required: true,
+        },
+        pharmacyName: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now()
         },
         Medicines: [
           {
