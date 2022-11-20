@@ -35,6 +35,27 @@ const LabSchema = new Schema(
         },
       },
     ],
+    requests: [
+      {
+        patientName: {
+          type: String,
+          required: true,
+        },
+        patientEmail: {
+          type: String,
+          required: true,
+        },
+        message: {
+          type: String,
+          required: true,
+        },
+        address: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+    
   },
   { strict: true, timestamps: true }
 );

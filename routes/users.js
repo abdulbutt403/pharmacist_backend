@@ -5,6 +5,7 @@ var Patient = require("../models/Patient");
 var Pharmacist = require("../models/Pharmacist");
 const jwt = require("jsonwebtoken");
 const config = require("config"); //load config module
+const { default: mongoose } = require("mongoose");
 const jwtToken = config.get("jwtsecret");
 
 router.post("/create", async (req, res) => {
@@ -27,7 +28,12 @@ router.post("/create", async (req, res) => {
     if (found) {
       (success = false), (msg = "Pharmacist already exist");
     } else {
-      result = await Pharmacist.create({ email, password, fullName });
+      result = await Pharmacist.create({
+        email,
+        password,
+        fullName,
+        address: req.body?.address,
+      });
       success = true;
     }
   } else if (role === "LAB") {
@@ -87,14 +93,14 @@ router.get("/pharmacy", async (req, res) => {
 });
 
 router.post("/addMedicine", async (req, res) => {
-  const { pharmacyId, Title, Quantity, Price } = req.body;
+  const { pharmacyId, Title, Quantity, Identifier , Price } = req.body;
   try {
     let test = await Pharmacist.findById(pharmacyId);
 
     if (test.Medicines.some((e) => e.Title === Title)) {
       res.send("Already Exist");
     } else {
-      test.Medicines.unshift({ Title, Quantity, Price });
+      test.Medicines.unshift({ Title, Quantity, Price, Identifier });
       await test.save();
       res.status(200).send("Medicine Entered.");
     }
@@ -107,40 +113,97 @@ router.post("/addMedicine", async (req, res) => {
 router.post("/order", async (req, res) => {
   const payload = req.body;
 
-  const { state, patientEmail, pharmacyId, pharmacyName, Medicines } = payload;
+  const { state, patientEmail, pharmacyId, pharmacyName, Medicines, Identifier } = payload;
 
   try {
     let pharmacy = await Pharmacist.findById(pharmacyId);
     if (pharmacy) {
-      pharmacy.orders.unshift({ state, patientEmail, pharmacyId, pharmacyName, Medicines });
+      pharmacy.orders.unshift({
+        state,
+        patientEmail,
+        pharmacyId,
+        pharmacyName,
+        Medicines,
+        Identifier
+      });
     }
     let patient = await Patient.findOne({ email: patientEmail });
     if (patient) {
-      patient.orders.unshift({ state, patientEmail, pharmacyId, pharmacyName, Medicines });
+      patient.orders.unshift({
+        state,
+        patientEmail,
+        pharmacyId,
+        pharmacyName,
+        Medicines,
+        Identifier
+      });
     }
 
     const svaed1 = await pharmacy.save();
     const saved2 = await patient.save();
 
-    res.json({success: true, pharmacy: svaed1, patient: saved2});
+    res.json({ success: true, pharmacy: svaed1, patient: saved2 });
   } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+router.post("/orderByPatient", async (req, res) => {
+  console.log(req.body);
+  let patient = await Patient.findOne({ email: req.body.patientEmail });
+
+  res.json({ orders: patient.orders });
+});
+
+router.post("/orderByPharmacy", async (req, res) => {
+  let pharmacy = await Pharmacist.findById(req.body.pharmacyId);
+  res.json({ orders: pharmacy.orders });
+});
+
+router.post("/medicineByPharmacy", async (req, res) => {
+  let pharmacy = await Pharmacist.findById(req.body.pharmacyId);
+  res.json({ orders: pharmacy.Medicines });
+});
+
+router.post("/orderUpdate", async (req, res) => {
+  const { pharmacyId, orderId, status, patientEmail } = req.body;
+  let pharmacy = await Pharmacist.findById(pharmacyId);
+  let found = pharmacy.orders
+  let idx = found.findIndex(e => e.Identifier === orderId)
+  found[idx].state = status
+
+  let patient = await Patient.findOne({email: patientEmail});
+  let found2 = pharmacy.orders
+  let idx2 = found2.findIndex(e => e.Identifier === orderId)
+  found2[idx2].state = status
+  let pharmacyUpdate = await pharmacy.save();
+  let patientUpdate = await patient.save();
+  res.json({pharmacyUpdate,patientUpdate});
+
+});
+
+
+router.post("/removeMedicine", async (req, res) => {
+  const { pharmacyId, Title } = req.body;
+  try {
+    let test = await Pharmacist.findById(pharmacyId);
+
+    if (test.Medicines.some((e) => e.Title === Title)) {
+      let idx = test.Medicines.findIndex(e => e.Title === Title)
+      test.Medicines.splice(idx,1);
+      await test.save();
+      res.status(200).send("Successfully Deleted...");
+    } else {
+      res.status(400).send("Medicine Doesn't Exist.");
+    }
+  } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
   }
 });
 
 
-router.post("/orderByPatient", async (req, res) => {
-  console.log(req.body)
-  let patient = await Patient.findOne({ email: req.body.patientEmail });
-  
-  res.json({orders: patient.orders})
-})
 
-
-router.post("/orderByPharmacy", async (req, res) => {
-  let pharmacy = await Pharmacist.findById(req.body.pharmacyId);
-  res.json({orders: pharmacy.orders})
-})
 
 module.exports = router;

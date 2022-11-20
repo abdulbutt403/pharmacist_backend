@@ -21,6 +21,10 @@ const PharmacistSchema = new Schema(
     },
     Medicines: [
       {
+        Identifier: {
+          type: String,
+          required: true,
+        },
         Title: {
           type: String,
           required: true,
@@ -50,6 +54,10 @@ const PharmacistSchema = new Schema(
           required: true,
         },
         pharmacyName: {
+          type: String,
+          required: true,
+        },
+        Identifier: {
           type: String,
           required: true,
         },

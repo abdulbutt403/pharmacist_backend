@@ -57,6 +57,10 @@ const PatientSchema = new Schema(
           type: Date,
           default: Date.now()
         },
+        Identifier: {
+          type: String,
+          required: true,
+        },
         Medicines: [
           {
             Title: {
