@@ -93,7 +93,7 @@ router.get("/pharmacy", async (req, res) => {
 });
 
 router.post("/addMedicine", async (req, res) => {
-  const { pharmacyId, Title, Quantity, Identifier , Price } = req.body;
+  const { pharmacyId, Title, Quantity, Identifier, Price } = req.body;
   try {
     let test = await Pharmacist.findById(pharmacyId);
 
@@ -113,7 +113,14 @@ router.post("/addMedicine", async (req, res) => {
 router.post("/order", async (req, res) => {
   const payload = req.body;
 
-  const { state, patientEmail, pharmacyId, pharmacyName, Medicines, Identifier } = payload;
+  const {
+    state,
+    patientEmail,
+    pharmacyId,
+    pharmacyName,
+    Medicines,
+    Identifier,
+  } = payload;
 
   try {
     let pharmacy = await Pharmacist.findById(pharmacyId);
@@ -124,7 +131,7 @@ router.post("/order", async (req, res) => {
         pharmacyId,
         pharmacyName,
         Medicines,
-        Identifier
+        Identifier,
       });
     }
     let patient = await Patient.findOne({ email: patientEmail });
@@ -135,7 +142,7 @@ router.post("/order", async (req, res) => {
         pharmacyId,
         pharmacyName,
         Medicines,
-        Identifier
+        Identifier,
       });
     }
 
@@ -169,20 +176,18 @@ router.post("/medicineByPharmacy", async (req, res) => {
 router.post("/orderUpdate", async (req, res) => {
   const { pharmacyId, orderId, status, patientEmail } = req.body;
   let pharmacy = await Pharmacist.findById(pharmacyId);
-  let found = pharmacy.orders
-  let idx = found.findIndex(e => e.Identifier === orderId)
-  found[idx].state = status
+  let found = pharmacy.orders;
+  let idx = found.findIndex((e) => e.Identifier === orderId);
+  found[idx].state = status;
 
-  let patient = await Patient.findOne({email: patientEmail});
-  let found2 = pharmacy.orders
-  let idx2 = found2.findIndex(e => e.Identifier === orderId)
-  found2[idx2].state = status
+  let patient = await Patient.findOne({ email: patientEmail });
+  let found2 = pharmacy.orders;
+  let idx2 = found2.findIndex((e) => e.Identifier === orderId);
+  found2[idx2].state = status;
   let pharmacyUpdate = await pharmacy.save();
   let patientUpdate = await patient.save();
-  res.json({pharmacyUpdate,patientUpdate});
-
+  res.json({ pharmacyUpdate, patientUpdate });
 });
-
 
 router.post("/removeMedicine", async (req, res) => {
   const { pharmacyId, Title } = req.body;
@@ -190,8 +195,8 @@ router.post("/removeMedicine", async (req, res) => {
     let test = await Pharmacist.findById(pharmacyId);
 
     if (test.Medicines.some((e) => e.Title === Title)) {
-      let idx = test.Medicines.findIndex(e => e.Title === Title)
-      test.Medicines.splice(idx,1);
+      let idx = test.Medicines.findIndex((e) => e.Title === Title);
+      test.Medicines.splice(idx, 1);
       await test.save();
       res.status(200).send("Successfully Deleted...");
     } else {
@@ -203,7 +208,25 @@ router.post("/removeMedicine", async (req, res) => {
   }
 });
 
+router.post("/getPharmacy", async (req, res) => {
+  const { pharmacyId } = req.body;
+  let test = await Pharmacist.findById(pharmacyId);
+  res.json(test);
+});
 
-
+router.post("/editPharmacy", async (req, res) => {
+  const {email, password, fullName, address} = req.body 
+  filter = { _id: req.body.pharmacyId };
+  update = { email, password, fullName, address };
+  try {
+    const response = await Pharmacist.findOneAndUpdate(filter, update);
+    console.log(response);
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 module.exports = router;
