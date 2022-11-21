@@ -181,7 +181,7 @@ router.post("/orderUpdate", async (req, res) => {
   found[idx].state = status;
 
   let patient = await Patient.findOne({ email: patientEmail });
-  let found2 = pharmacy.orders;
+  let found2 = patient.orders;
   let idx2 = found2.findIndex((e) => e.Identifier === orderId);
   found2[idx2].state = status;
   let pharmacyUpdate = await pharmacy.save();
@@ -214,12 +214,35 @@ router.post("/getPharmacy", async (req, res) => {
   res.json(test);
 });
 
+
+router.post("/getPatient", async (req, res) => {
+  const { patientEmail } = req.body;
+  let test = await Patient.findOne({email: patientEmail});
+  res.json(test);
+});
+
 router.post("/editPharmacy", async (req, res) => {
-  const {email, password, fullName, address} = req.body 
-  filter = { _id: req.body.pharmacyId };
+  const {pharmacyId,email, password, fullName, address} = req.body 
+  filter = { _id: pharmacyId };
   update = { email, password, fullName, address };
   try {
     const response = await Pharmacist.findOneAndUpdate(filter, update);
+    console.log(response);
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+
+router.post("/editPatient", async (req, res) => {
+  const {patientEmail,email, password, fullName, address} = req.body 
+  filter = { email: patientEmail };
+  update = { email, password, fullName, address };
+  try {
+    const response = await Patient.findOneAndUpdate(filter, update);
     console.log(response);
     return res.json({
       success: true,
