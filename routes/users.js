@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var Lab = require("../models/Lab");
 var Patient = require("../models/Patient");
+var Reports = require("../models/Reports");
 var Pharmacist = require("../models/Pharmacist");
 const jwt = require("jsonwebtoken");
 const config = require("config"); //load config module
@@ -41,7 +42,12 @@ router.post("/create", async (req, res) => {
     if (found) {
       (success = false), (msg = "Lab already exist");
     } else {
-      result = await Lab.create({ email, password, fullName });
+      result = await Lab.create({
+        email,
+        password,
+        fullName,
+        address: req.body?.address,
+      });
       success = true;
     }
   }
@@ -89,6 +95,11 @@ router.post("/addpharmacy", async (req, res) => {
 
 router.get("/pharmacy", async (req, res) => {
   let result = await Pharmacist.find();
+  res.json({ result });
+});
+
+router.get("/labs", async (req, res) => {
+  let result = await Lab.find();
   res.json({ result });
 });
 
@@ -156,12 +167,82 @@ router.post("/order", async (req, res) => {
   }
 });
 
+
+
+router.post("/sample_request", async (req, res) => {
+  const payload = req.body;
+
+  const {
+    state,
+    patientEmail,
+    labId,
+    labName,
+    Identifier,
+    Reason,
+    Date_Requested
+  } = payload;
+
+  try {
+    let lab = await Lab.findById(labId);
+    if (lab) {
+      lab.samplingRequests.unshift({
+        state,
+        patientEmail,
+        labId,
+        labName,
+        Identifier,
+        Reason,
+        Date_Requested
+      });
+    }
+    let patient = await Patient.findOne({ email: patientEmail });
+    if (patient) {
+      patient.samplingRequests.unshift({
+        state,
+        patientEmail,
+        labId,
+        labName,
+        Identifier,
+        Reason,
+        Date_Requested
+      });
+    }
+
+    const svaed1 = await lab.save();
+    const saved2 = await patient.save();
+
+    res.json({ success: true, pharmacy: svaed1, patient: saved2 });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 router.post("/orderByPatient", async (req, res) => {
   console.log(req.body);
   let patient = await Patient.findOne({ email: req.body.patientEmail });
 
   res.json({ orders: patient.orders });
 });
+
+router.post("/requestsByPatient", async (req, res) => {
+  console.log(req.body);
+  let patient = await Patient.findOne({ email: req.body.patientEmail });
+
+  res.json({ orders: patient.samplingRequests });
+});
+
+
+router.post("/requestsByLab", async (req, res) => {
+  console.log(req.body);
+  let patient = await Lab.findOne({ _id: req.body.labId });
+  
+  console.log(req.body)
+  res.json({ orders: patient.samplingRequests });
+});
+
+
+
 
 router.post("/orderByPharmacy", async (req, res) => {
   let pharmacy = await Pharmacist.findById(req.body.pharmacyId);
@@ -189,6 +270,22 @@ router.post("/orderUpdate", async (req, res) => {
   res.json({ pharmacyUpdate, patientUpdate });
 });
 
+router.post("/requestUpdate", async (req, res) => {
+  const { labId, orderId, status, patientEmail } = req.body;
+  let lab = await Lab.findById(labId);
+  let found = lab.samplingRequests;
+  let idx = found.findIndex((e) => e.Identifier === orderId);
+  found[idx].state = status;
+
+  let patient = await Patient.findOne({ email: patientEmail });
+  let found2 = patient.samplingRequests;
+  let idx2 = found2.findIndex((e) => e.Identifier === orderId);
+  found2[idx2].state = status;
+  let labUpdate = await lab.save();
+  let patientUpdate = await patient.save();
+  res.json({ labUpdate, patientUpdate });
+});
+
 router.post("/removeMedicine", async (req, res) => {
   const { pharmacyId, Title } = req.body;
   try {
@@ -214,15 +311,14 @@ router.post("/getPharmacy", async (req, res) => {
   res.json(test);
 });
 
-
 router.post("/getPatient", async (req, res) => {
   const { patientEmail } = req.body;
-  let test = await Patient.findOne({email: patientEmail});
+  let test = await Patient.findOne({ email: patientEmail });
   res.json(test);
 });
 
 router.post("/editPharmacy", async (req, res) => {
-  const {pharmacyId,email, password, fullName, address} = req.body 
+  const { pharmacyId, email, password, fullName, address } = req.body;
   filter = { _id: pharmacyId };
   update = { email, password, fullName, address };
   try {
@@ -236,9 +332,8 @@ router.post("/editPharmacy", async (req, res) => {
   }
 });
 
-
 router.post("/editPatient", async (req, res) => {
-  const {patientEmail,email, password, fullName, address} = req.body 
+  const { patientEmail, email, password, fullName, address } = req.body;
   filter = { email: patientEmail };
   update = { email, password, fullName, address };
   try {
@@ -251,5 +346,55 @@ router.post("/editPatient", async (req, res) => {
     console.log(error);
   }
 });
+
+router.post("/editLab", async (req, res) => {
+  const { labId, email, password, fullName, address } = req.body;
+  filter = { _id: labId };
+  update = { email, password, fullName, address };
+  try {
+    const response = await Lab.findOneAndUpdate(filter, update);
+    console.log(response);
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/getLab", async (req, res) => {
+  const { labId } = req.body;
+  let test = await Lab.findOne({ _id: labId });
+  res.json(test);
+});
+
+
+router.post("/createReport", async (req, res) => {
+  const { Identifier, Image } = req.body;
+  try {
+    let found = await Reports.findOne({ Identifier });
+    if(found){
+      res.send({success: 'duplicate', msg: 'Already uploaded'})
+    }
+    else{
+    result = await Reports.create({ Identifier, Image });
+    res.json({result,success: true});
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({success: false});
+  }
+})
+
+router.post("/getReport", async (req, res) => {
+  const { Identifier } = req.body;
+  try {
+    let found = await Reports.findOne({ Identifier });
+    res.json({found})
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({success: false});
+  }
+})
 
 module.exports = router;

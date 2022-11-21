@@ -35,24 +35,40 @@ const LabSchema = new Schema(
         },
       },
     ],
-    requests: [
+    samplingRequests: [
       {
-        patientName: {
-          type: String,
+        state: {
+          type: String, //PENDING,DELIVERED
           required: true,
         },
         patientEmail: {
           type: String,
           required: true,
         },
-        message: {
+        labId: {
           type: String,
           required: true,
         },
-        address: {
+        labName: {
           type: String,
           required: true,
         },
+        createdAt: {
+          type: Date,
+          default: Date.now()
+        },
+        Identifier: {
+          type: String,
+          required: true,
+        },
+        Reason: {
+          type: String,
+          required: true,
+        },
+        Date_Requested: {
+          type: String,
+          required: true,
+        }
       },
     ],
     
