@@ -4,6 +4,7 @@ var Lab = require("../models/Lab");
 var Patient = require("../models/Patient");
 var Reports = require("../models/Reports");
 var Pharmacist = require("../models/Pharmacist");
+var Prescription = require("../models/Prescription");
 const jwt = require("jsonwebtoken");
 const config = require("config"); //load config module
 const { default: mongoose } = require("mongoose");
@@ -131,7 +132,24 @@ router.post("/order", async (req, res) => {
     pharmacyName,
     Medicines,
     Identifier,
+    address,
+    phoneNumber,
   } = payload;
+
+
+
+  console.log(
+    {
+      state,
+      patientEmail,
+      pharmacyId,
+      pharmacyName,
+      Medicines,
+      Identifier,
+      address,
+      phoneNumber,
+    } 
+  )
 
   try {
     let pharmacy = await Pharmacist.findById(pharmacyId);
@@ -143,6 +161,8 @@ router.post("/order", async (req, res) => {
         pharmacyName,
         Medicines,
         Identifier,
+        address,
+        phoneNumber,
       });
     }
     let patient = await Patient.findOne({ email: patientEmail });
@@ -154,6 +174,8 @@ router.post("/order", async (req, res) => {
         pharmacyName,
         Medicines,
         Identifier,
+        address,
+        phoneNumber,
       });
     }
 
@@ -286,6 +308,7 @@ router.post("/requestUpdate", async (req, res) => {
   res.json({ labUpdate, patientUpdate });
 });
 
+
 router.post("/removeMedicine", async (req, res) => {
   const { pharmacyId, Title } = req.body;
   try {
@@ -386,10 +409,47 @@ router.post("/createReport", async (req, res) => {
   }
 })
 
+
+router.post("/createPrescription", async (req, res) => {
+  const { Identifier, Image , patientEmail, pharmacyEmail, address, phoneNumber} = req.body;
+  try {
+    result = await Prescription.create({ Identifier, Image, patientEmail, pharmacyEmail,address, phoneNumber, status: "PENDING"});
+    res.json({result,success: true});
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({success: false});
+  }
+})
+
+
+
 router.post("/getReport", async (req, res) => {
   const { Identifier } = req.body;
   try {
     let found = await Reports.findOne({ Identifier });
+    res.json({found})
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({success: false});
+  }
+})
+
+router.post("/getPrescrptionForUser", async (req, res) => {
+  const { patientEmail } = req.body;
+  try {
+    let found = await Prescription.find({ patientEmail });
+    res.json({found})
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({success: false});
+  }
+})
+
+
+router.post("/getPrescrptionPharmacy", async (req, res) => {
+  const { pharmacyEmail } = req.body;
+  try {
+    let found = await Prescription.find({ pharmacyEmail });
     res.json({found})
   } catch (error) {
     console.log(error);

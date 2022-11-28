@@ -53,9 +53,17 @@ const PatientSchema = new Schema(
           type: String,
           required: true,
         },
+        address: {
+          type: String,
+          required: false,
+        },
+        phoneNumber: {
+          type: String,
+          required: false,
+        },
         createdAt: {
           type: Date,
-          default: Date.now()
+          default: Date.now(),
         },
         Identifier: {
           type: String,
@@ -99,7 +107,7 @@ const PatientSchema = new Schema(
         },
         createdAt: {
           type: Date,
-          default: Date.now()
+          default: Date.now(),
         },
         Identifier: {
           type: String,
@@ -112,9 +120,8 @@ const PatientSchema = new Schema(
         Date_Requested: {
           type: String,
           required: true,
-        }
+        },
       },
-      
     ],
   },
   { strict: true, timestamps: true }
