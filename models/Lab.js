@@ -71,6 +71,23 @@ const LabSchema = new Schema(
         }
       },
     ],
+    tests: [
+      {
+        title: {
+          type: String, //PENDING,DELIVERED
+          required: true,
+        },
+        description: {
+          type: String, //PENDING,DELIVERED
+          required: true,
+        },
+        price: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+
     
   },
   { strict: true, timestamps: true }

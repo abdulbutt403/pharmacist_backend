@@ -136,20 +136,16 @@ router.post("/order", async (req, res) => {
     phoneNumber,
   } = payload;
 
-
-
-  console.log(
-    {
-      state,
-      patientEmail,
-      pharmacyId,
-      pharmacyName,
-      Medicines,
-      Identifier,
-      address,
-      phoneNumber,
-    } 
-  )
+  console.log({
+    state,
+    patientEmail,
+    pharmacyId,
+    pharmacyName,
+    Medicines,
+    Identifier,
+    address,
+    phoneNumber,
+  });
 
   try {
     let pharmacy = await Pharmacist.findById(pharmacyId);
@@ -189,8 +185,6 @@ router.post("/order", async (req, res) => {
   }
 });
 
-
-
 router.post("/sample_request", async (req, res) => {
   const payload = req.body;
 
@@ -201,7 +195,7 @@ router.post("/sample_request", async (req, res) => {
     labName,
     Identifier,
     Reason,
-    Date_Requested
+    Date_Requested,
   } = payload;
 
   try {
@@ -214,7 +208,7 @@ router.post("/sample_request", async (req, res) => {
         labName,
         Identifier,
         Reason,
-        Date_Requested
+        Date_Requested,
       });
     }
     let patient = await Patient.findOne({ email: patientEmail });
@@ -226,7 +220,7 @@ router.post("/sample_request", async (req, res) => {
         labName,
         Identifier,
         Reason,
-        Date_Requested
+        Date_Requested,
       });
     }
 
@@ -254,17 +248,13 @@ router.post("/requestsByPatient", async (req, res) => {
   res.json({ orders: patient.samplingRequests });
 });
 
-
 router.post("/requestsByLab", async (req, res) => {
   console.log(req.body);
   let patient = await Lab.findOne({ _id: req.body.labId });
-  
-  console.log(req.body)
+
+  console.log(req.body);
   res.json({ orders: patient.samplingRequests });
 });
-
-
-
 
 router.post("/orderByPharmacy", async (req, res) => {
   let pharmacy = await Pharmacist.findById(req.body.pharmacyId);
@@ -307,7 +297,6 @@ router.post("/requestUpdate", async (req, res) => {
   let patientUpdate = await patient.save();
   res.json({ labUpdate, patientUpdate });
 });
-
 
 router.post("/removeMedicine", async (req, res) => {
   const { pharmacyId, Title } = req.body;
@@ -391,70 +380,98 @@ router.post("/getLab", async (req, res) => {
   res.json(test);
 });
 
-
 router.post("/createReport", async (req, res) => {
   const { Identifier, Image } = req.body;
   try {
     let found = await Reports.findOne({ Identifier });
-    if(found){
-      res.send({success: 'duplicate', msg: 'Already uploaded'})
-    }
-    else{
-    result = await Reports.create({ Identifier, Image });
-    res.json({result,success: true});
+    if (found) {
+      res.send({ success: "duplicate", msg: "Already uploaded" });
+    } else {
+      result = await Reports.create({ Identifier, Image });
+      res.json({ result, success: true });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send({success: false});
+    res.status(500).send({ success: false });
   }
-})
+});
 
+router.post("/createTest", async (req, res) => {
+  const { labId, title, description, price } = req.body;
+  try {
+    let lab = await Lab.findById(labId);
+    if (lab) {
+      lab.tests.unshift({
+        title,
+        description,
+        price,
+      });
+    }
+    await lab.save();
+    res.status(200).send("Test Entered.");
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false });
+  }
+});
 
 router.post("/createPrescription", async (req, res) => {
-  const { Identifier, Image , patientEmail, pharmacyEmail, address, phoneNumber} = req.body;
+  const {
+    Identifier,
+    Image,
+    patientEmail,
+    pharmacyEmail,
+    address,
+    phoneNumber,
+  } = req.body;
   try {
-    result = await Prescription.create({ Identifier, Image, patientEmail, pharmacyEmail,address, phoneNumber, status: "PENDING"});
-    res.json({result,success: true});
+    result = await Prescription.create({
+      Identifier,
+      Image,
+      patientEmail,
+      pharmacyEmail,
+      address,
+      phoneNumber,
+      status: "PENDING",
+    });
+    res.json({ result, success: true });
   } catch (error) {
     console.log(error);
-    res.status(500).send({success: false});
+    res.status(500).send({ success: false });
   }
-})
-
-
+});
 
 router.post("/getReport", async (req, res) => {
   const { Identifier } = req.body;
   try {
     let found = await Reports.findOne({ Identifier });
-    res.json({found})
+    res.json({ found });
   } catch (error) {
     console.log(error);
-    res.status(500).send({success: false});
+    res.status(500).send({ success: false });
   }
-})
+});
 
 router.post("/getPrescrptionForUser", async (req, res) => {
   const { patientEmail } = req.body;
   try {
     let found = await Prescription.find({ patientEmail });
-    res.json({found})
+    res.json({ found });
   } catch (error) {
     console.log(error);
-    res.status(500).send({success: false});
+    res.status(500).send({ success: false });
   }
-})
-
+});
 
 router.post("/getPrescrptionPharmacy", async (req, res) => {
   const { pharmacyEmail } = req.body;
   try {
     let found = await Prescription.find({ pharmacyEmail });
-    res.json({found})
+    res.json({ found });
   } catch (error) {
     console.log(error);
-    res.status(500).send({success: false});
+    res.status(500).send({ success: false });
   }
-})
+});
 
 module.exports = router;
