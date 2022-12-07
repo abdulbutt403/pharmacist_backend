@@ -11,6 +11,14 @@ const LabSchema = new Schema(
       type: String,
       required: true,
     },
+    code: {
+      type: String,
+      default: "000000"
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
     address: {
       type: String,
       default: true,

@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const config = require("config"); //load config module
 const { default: mongoose } = require("mongoose");
 const jwtToken = config.get("jwtsecret");
+const transporter = require("../config/emailconfig");
 
 router.post("/create", async (req, res) => {
   const { email, password, role, fullName } = req.body;
@@ -23,7 +24,10 @@ router.post("/create", async (req, res) => {
       (success = false), (msg = "Patient already exist");
     } else {
       result = await Patient.create({ email, password, fullName });
-      success = true;
+      if (result) {
+        await sendCodePatient(email);
+        success = true;
+      }
     }
   } else if (role === "PHARMACIST") {
     let found = await Pharmacist.findOne({ email });
@@ -36,7 +40,10 @@ router.post("/create", async (req, res) => {
         fullName,
         address: req.body?.address,
       });
-      success = true;
+      if (result) {
+        await sendCodePharmacy(email);
+        success = true;
+      }
     }
   } else if (role === "LAB") {
     let found = await Lab.findOne({ email });
@@ -49,7 +56,10 @@ router.post("/create", async (req, res) => {
         fullName,
         address: req.body?.address,
       });
-      success = true;
+      if (result) {
+        await sendCodeLab(email);
+        success = true;
+      }
     }
   }
 
@@ -73,6 +83,11 @@ router.post("/login", async (req, res) => {
       message: "WRONG EMAIL OR PASSWORD",
     });
 
+  if (found && !found.isVerified)
+    return res.status(401).json({
+      message: "Not Verified",
+    });
+
   delete found.password;
 
   let payload = {};
@@ -81,6 +96,7 @@ router.post("/login", async (req, res) => {
   payload.id = found._id;
   payload.name = found.fullName;
   payload.email = found.email;
+  payload.address = found.address;
 
   jwt.sign(payload, jwtToken, { expiresIn: 360000 }, (err, token) => {
     if (err) throw err;
@@ -94,6 +110,53 @@ router.post("/addpharmacy", async (req, res) => {
   res.send({ result });
 });
 
+router.post("/verify", async (req, res) => {
+  let success = false;
+  try {
+    const { email, code, role } = req.body;
+
+    if (role === "PATIENT") {
+      let result = await Patient.findOne({ email });
+      if (result) {
+        if (result.code === code) {
+          result.isVerified = true;
+          await result.save()
+          success = true;
+        }
+      }
+    } else if (role === "PHARMACIST") {
+      let result = await Pharmacist.findOne({ email });
+      if (result) {
+        if (result.code === code) {
+          result.isVerified = true;
+          await result.save()
+          success = true;
+        }
+      }
+    } else if (role === "LAB") {
+      let result = await Lab.findOne({ email });
+      if (result) {
+        if (result.code === code) {
+          result.isVerified = true;
+          await result.save()
+          success = true;
+        }
+      }
+    }
+
+
+    if(!success){
+      return res.json({ success, msg : 'Verification was not successful'});
+    }else{
+      return res.json({ success, msg : 'Verification Successful !'});
+    }
+
+  } catch (error) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 router.get("/pharmacy", async (req, res) => {
   let result = await Pharmacist.find();
   res.json({ result });
@@ -105,14 +168,14 @@ router.get("/labs", async (req, res) => {
 });
 
 router.post("/addMedicine", async (req, res) => {
-  const { pharmacyId, Title, Quantity, Identifier, Price } = req.body;
+  const { pharmacyId, Title, Quantity, Identifier, Price,Prescription } = req.body;
   try {
     let test = await Pharmacist.findById(pharmacyId);
 
     if (test.Medicines.some((e) => e.Title === Title)) {
       res.send("Already Exist");
     } else {
-      test.Medicines.unshift({ Title, Quantity, Price, Identifier });
+      test.Medicines.unshift({ Title, Quantity, Price, Identifier,Prescription });
       await test.save();
       res.status(200).send("Medicine Entered.");
     }
@@ -474,4 +537,76 @@ router.post("/getPrescrptionPharmacy", async (req, res) => {
   }
 });
 
+const sendCodePatient = async (email) => {
+  let random = Math.floor(Math.random() * 999999);
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: email, // list of receivers
+      subject: "Patient Registeration", // Subject line
+      html: `Your verification code is : ${random}`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } else {
+        let found = await Patient.findOne({ email });
+        found.code = random;
+        await found.save();
+      }
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+};
+
+const sendCodePharmacy = async (email) => {
+  let random = Math.floor(Math.random() * 999999);
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: email, // list of receivers
+      subject: "Pharmacy Registeration", // Subject line
+      html: `Your verification code is : ${random}`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } else {
+        let found = await Pharmacist.findOne({ email });
+        found.code = random;
+        await found.save();
+      }
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+};
+
+
+const sendCodeLab = async (email) => {
+  let random = Math.floor(Math.random() * 999999);
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: email, // list of receivers
+      subject: "Lab Registeration", // Subject line
+      html: `Your verification code is : ${random}`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } else {
+        let found = await Lab.findOne({ email });
+        found.code = random;
+        await found.save();
+      }
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+};
 module.exports = router;
