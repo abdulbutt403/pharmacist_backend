@@ -345,6 +345,17 @@ router.post("/orderUpdate", async (req, res) => {
   res.json({ pharmacyUpdate, patientUpdate });
 });
 
+router.post("/pressUpdate", async (req, res) => {
+  const { Identifier, status } = req.body;
+  let found = await Prescription.findOne(Identifier);
+  found.status = status
+  let response = await found.save()
+  res.json({ response });
+});
+
+
+
+
 router.post("/requestUpdate", async (req, res) => {
   const { labId, orderId, status, patientEmail } = req.body;
   let lab = await Lab.findById(labId);
