@@ -19,6 +19,10 @@ const DoctorSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    phoneNumber: {
+        type: String,
+        default: "",
+    },
     address: {
       type: String,
       default: "",

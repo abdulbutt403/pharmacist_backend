@@ -13,11 +13,15 @@ const PatientSchema = new Schema(
     },
     code: {
       type: String,
-      default: "000000"
+      default: "000000",
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
+    },
+    phoneNumber: {
+      type: String,
+      default: "",
     },
     address: {
       type: String,
@@ -140,12 +144,12 @@ const PatientSchema = new Schema(
         videoConferenceLink: {
           type: String,
           required: false,
-          default: "N/A"
+          default: "N/A",
         },
         Prescripton: {
           type: String,
           required: false,
-          default: "N/A"
+          default: "N/A",
         },
         patientEmail: {
           type: String,

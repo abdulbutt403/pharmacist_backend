@@ -13,11 +13,15 @@ const LabSchema = new Schema(
     },
     code: {
       type: String,
-      default: "000000"
+      default: "000000",
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
+    },
+    phoneNumber: {
+      type: String,
+      default: "",
     },
     address: {
       type: String,
@@ -63,7 +67,7 @@ const LabSchema = new Schema(
         },
         createdAt: {
           type: Date,
-          default: Date.now()
+          default: Date.now(),
         },
         Identifier: {
           type: String,
@@ -76,7 +80,7 @@ const LabSchema = new Schema(
         Date_Requested: {
           type: String,
           required: true,
-        }
+        },
       },
     ],
     tests: [
@@ -95,8 +99,6 @@ const LabSchema = new Schema(
         },
       },
     ],
-
-    
   },
   { strict: true, timestamps: true }
 );

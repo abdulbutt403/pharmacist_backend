@@ -13,11 +13,15 @@ const PharmacistSchema = new Schema(
     },
     code: {
       type: String,
-      default: "000000"
+      default: "000000",
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
+    },
+    phoneNumber: {
+      type: String,
+      default: "",
     },
     address: {
       type: String,
@@ -47,8 +51,8 @@ const PharmacistSchema = new Schema(
         },
         Prescription: {
           type: Boolean,
-          default: false,    
-        }
+          default: false,
+        },
       },
     ],
     orders: [
