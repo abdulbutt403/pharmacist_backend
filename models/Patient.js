@@ -146,7 +146,7 @@ const PatientSchema = new Schema(
           type: String,
           required: false,
           default: "N/A"
-      },
+        },
         patientEmail: {
           type: String,
           required: true,

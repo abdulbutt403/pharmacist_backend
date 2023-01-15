@@ -399,11 +399,19 @@ router.post("/requestsByPatient", async (req, res) => {
 });
 
 
+
+
 router.post("/bookingsByPatient", async (req, res) => {
   console.log(req.body);
   let patient = await Patient.findOne({ email: req.body.patientEmail });
 
   res.json({ orders: patient.appointmentRequests });
+});
+
+
+router.post("/bookingsByDoctor", async (req, res) => {
+  let doctor = await Doctor.findOne({ _id: req.body.doctorId });
+  res.json({ orders: doctor.appointmentRequests });
 });
 
 router.post("/requestsByLab", async (req, res) => {
@@ -438,6 +446,22 @@ router.post("/orderUpdate", async (req, res) => {
   let pharmacyUpdate = await pharmacy.save();
   let patientUpdate = await patient.save();
   res.json({ pharmacyUpdate, patientUpdate });
+});
+
+router.post("/bookingUpdate", async (req, res) => {
+  const { doctorId, orderId, status, patientEmail } = req.body;
+  let doctor = await Doctor.findById(doctorId);
+  let found = doctor.appointmentRequests;
+  let idx = found.findIndex((e) => e.Identifier === orderId);
+  found[idx].state = status;
+
+  let patient = await Patient.findOne({ email: patientEmail });
+  let found2 = patient.appointmentRequests;
+  let idx2 = found2.findIndex((e) => e.Identifier === orderId);
+  found2[idx2].state = status;
+  let doctorUpdate = await doctor.save();
+  let patientUpdate = await patient.save();
+  res.json({ doctorUpdate, patientUpdate });
 });
 
 router.post("/pressUpdate", async (req, res) => {
@@ -582,6 +606,85 @@ router.post("/createReport", async (req, res) => {
     res.status(500).send({ success: false });
   }
 });
+
+
+router.post("/bookingPrescribe", async (req, res) => {
+  const { doctorId, orderId, prescribe, patientEmail } = req.body;
+  let doctor = await Doctor.findById(doctorId);
+  let found = doctor.appointmentRequests;
+  let idx = found.findIndex((e) => e.Identifier === orderId);
+  found[idx].Prescripton = prescribe;
+
+  let patient = await Patient.findOne({ email: patientEmail });
+  let found2 = patient.appointmentRequests;
+  let idx2 = found2.findIndex((e) => e.Identifier === orderId);
+  found2[idx2].Prescripton = prescribe;
+  let doctorUpdate = await doctor.save();
+  let patientUpdate = await patient.save();
+
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: patientEmail, // list of receivers
+      subject: "Doctor Prescription", // Subject line
+      html: `Your Doctor named ${doctorUpdate.fullName} has uploaded a prescription for you. Kindly check it on Pharmacist App`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } 
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+
+  res.json({ doctorUpdate, patientUpdate });
+
+
+
+});
+
+
+router.post("/bookingCall", async (req, res) => {
+  const { doctorId, orderId, videoConferenceLink, patientEmail } = req.body;
+  let doctor = await Doctor.findById(doctorId);
+  let found = doctor.appointmentRequests;
+  let idx = found.findIndex((e) => e.Identifier === orderId);
+  found[idx].videoConferenceLink = videoConferenceLink;
+
+  let patient = await Patient.findOne({ email: patientEmail });
+  let found2 = patient.appointmentRequests;
+  let idx2 = found2.findIndex((e) => e.Identifier === orderId);
+  found2[idx2].videoConferenceLink = videoConferenceLink;
+  let doctorUpdate = await doctor.save();
+  let patientUpdate = await patient.save();
+
+
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: patientEmail, // list of receivers
+      subject: "Doctor Video Conference", // Subject line
+      html: `Your Doctor named ${doctorUpdate.fullName} has uploaded a meeting link for you. Kindly Join it from ${videoConferenceLink}`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } 
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+
+  res.json({ doctorUpdate, patientUpdate });
+});
+
+
+
+
+
 
 router.post("/createTest", async (req, res) => {
   const { labId, title, description, price } = req.body;
