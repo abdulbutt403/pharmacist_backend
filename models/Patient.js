@@ -131,6 +131,52 @@ const PatientSchema = new Schema(
         },
       },
     ],
+    appointmentRequests: [
+      {
+        state: {
+          type: String, //ACCPETED, PENDING, DECLINED
+          required: true,
+        },
+        videoConferenceLink: {
+          type: String,
+          required: false,
+          default: "N/A"
+        },
+        Prescripton: {
+          type: String,
+          required: false,
+          default: "N/A"
+      },
+        patientEmail: {
+          type: String,
+          required: true,
+        },
+        doctorId: {
+          type: String,
+          required: true,
+        },
+        doctorName: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now(),
+        },
+        Identifier: {
+          type: String,
+          required: true,
+        },
+        Details: {
+          type: String,
+          required: true,
+        },
+        Date_Requested: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { strict: true, timestamps: true }
 );

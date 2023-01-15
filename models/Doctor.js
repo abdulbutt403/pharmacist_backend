@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const LabSchema = new Schema(
+const DoctorSchema = new Schema(
   {
     email: {
       type: String,
@@ -13,11 +13,11 @@ const LabSchema = new Schema(
     },
     code: {
       type: String,
-      default: "000000"
+      default: "000000",
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     address: {
       type: String,
@@ -27,9 +27,9 @@ const LabSchema = new Schema(
       type: String,
       default: "",
     },
-    reports: [
+    Prescription: [
       {
-        patientName: {
+        patientEmail: {
           type: String,
           required: true,
         },
@@ -41,62 +41,62 @@ const LabSchema = new Schema(
           type: String,
           required: true,
         },
-      },
-    ],
-    samplingRequests: [
-      {
-        state: {
-          type: String, //PENDING,DELIVERED
-          required: true,
-        },
-        patientEmail: {
-          type: String,
-          required: true,
-        },
-        labId: {
-          type: String,
-          required: true,
-        },
-        labName: {
+        doctorName: {
           type: String,
           required: true,
         },
         createdAt: {
           type: Date,
-          default: Date.now()
+          default: Date.now(),
+        },
+      },
+    ],
+    appointmentRequests: [
+      {
+        state: {
+          type: String, //ACCPETED, PENDING, DECLINED
+          required: true,
+        },
+        videoConferenceLink: {
+            type: String,
+            required: false,
+            default: "N/A"
+        },
+        Prescripton: {
+            type: String,
+            required: false,
+            default: "N/A"
+        },
+        patientEmail: {
+          type: String,
+          required: true,
+        },
+        doctorId: {
+          type: String,
+          required: true,
+        },
+        doctorName: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now(),
         },
         Identifier: {
           type: String,
           required: true,
         },
-        Reason: {
+        Details: {
           type: String,
           required: true,
         },
         Date_Requested: {
           type: String,
           required: true,
-        }
-      },
-    ],
-    tests: [
-      {
-        title: {
-          type: String, //PENDING,DELIVERED
-          required: true,
-        },
-        description: {
-          type: String, //PENDING,DELIVERED
-          required: true,
-        },
-        price: {
-          type: String,
-          required: true,
         },
       },
     ],
-
-    
   },
   { strict: true, timestamps: true }
 );
@@ -105,4 +105,4 @@ const LabSchema = new Schema(
 
 //const User = mongoose.model('user', { name: String, email : String, pass : String, verified : Boolean });
 
-module.exports = mongoose.model("Lab", LabSchema);
+module.exports = mongoose.model("Doctor", DoctorSchema);

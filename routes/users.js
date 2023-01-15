@@ -10,6 +10,7 @@ const config = require("config"); //load config module
 const { default: mongoose } = require("mongoose");
 const jwtToken = config.get("jwtsecret");
 const transporter = require("../config/emailconfig");
+const Doctor = require("../models/Doctor");
 
 router.post("/create", async (req, res) => {
   const { email, password, role, fullName } = req.body;
@@ -61,6 +62,22 @@ router.post("/create", async (req, res) => {
         success = true;
       }
     }
+  } else if (role === "DOCTOR") {
+    let found = await Doctor.findOne({ email });
+    if (found) {
+      (success = false), (msg = "Doctor already exist");
+    } else {
+      result = await Doctor.create({
+        email,
+        password,
+        fullName,
+        address: req.body?.address,
+      });
+      if (result) {
+        await sendCodeDoctor(email);
+        success = true;
+      }
+    }
   }
 
   return res.json({ result, success, msg });
@@ -76,6 +93,8 @@ router.post("/login", async (req, res) => {
     found = await Pharmacist.findOne({ email, password });
   } else if (role === "LAB") {
     found = await Lab.findOne({ email, password });
+  } else if (role === "DOCTOR") {
+    found = await Doctor.findOne({ email, password });
   }
 
   if (!found)
@@ -120,7 +139,7 @@ router.post("/verify", async (req, res) => {
       if (result) {
         if (result.code === code) {
           result.isVerified = true;
-          await result.save()
+          await result.save();
           success = true;
         }
       }
@@ -129,7 +148,7 @@ router.post("/verify", async (req, res) => {
       if (result) {
         if (result.code === code) {
           result.isVerified = true;
-          await result.save()
+          await result.save();
           success = true;
         }
       }
@@ -138,19 +157,26 @@ router.post("/verify", async (req, res) => {
       if (result) {
         if (result.code === code) {
           result.isVerified = true;
-          await result.save()
+          await result.save();
+          success = true;
+        }
+      }
+    } else if (role === "DOCTOR") {
+      let result = await Doctor.findOne({ email });
+      if (result) {
+        if (result.code === code) {
+          result.isVerified = true;
+          await result.save();
           success = true;
         }
       }
     }
 
-
-    if(!success){
-      return res.json({ success, msg : 'Verification was not successful'});
-    }else{
-      return res.json({ success, msg : 'Verification Successful !'});
+    if (!success) {
+      return res.json({ success, msg: "Verification was not successful" });
+    } else {
+      return res.json({ success, msg: "Verification Successful !" });
     }
-
   } catch (error) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -162,20 +188,32 @@ router.get("/pharmacy", async (req, res) => {
   res.json({ result });
 });
 
+router.get("/doctors", async (req, res) => {
+  let result = await Doctor.find();
+  res.json({ result });
+});
+
 router.get("/labs", async (req, res) => {
   let result = await Lab.find();
   res.json({ result });
 });
 
 router.post("/addMedicine", async (req, res) => {
-  const { pharmacyId, Title, Quantity, Identifier, Price,Prescription } = req.body;
+  const { pharmacyId, Title, Quantity, Identifier, Price, Prescription } =
+    req.body;
   try {
     let test = await Pharmacist.findById(pharmacyId);
 
     if (test.Medicines.some((e) => e.Title === Title)) {
       res.send("Already Exist");
     } else {
-      test.Medicines.unshift({ Title, Quantity, Price, Identifier,Prescription });
+      test.Medicines.unshift({
+        Title,
+        Quantity,
+        Price,
+        Identifier,
+        Prescription,
+      });
       await test.save();
       res.status(200).send("Medicine Entered.");
     }
@@ -248,6 +286,55 @@ router.post("/order", async (req, res) => {
   }
 });
 
+router.post("/booking_request", async (req, res) => {
+  const payload = req.body;
+
+  const {
+    doctorId,
+    doctorName,
+    Details,
+    Date_Requested,
+    state,
+    patientEmail,
+    Identifier,
+  } = payload;
+
+  try {
+    let doctor = await Doctor.findById(doctorId);
+    if (doctor) {
+      doctor.appointmentRequests.unshift({
+        state,
+        patientEmail,
+        doctorId,
+        doctorName,
+        Details,
+        Identifier,
+        Date_Requested,
+      });
+    }
+    let patient = await Patient.findOne({ email: patientEmail });
+    if (patient) {
+      patient.appointmentRequests.unshift({
+        state,
+        patientEmail,
+        doctorId,
+        doctorName,
+        Details,
+        Identifier,
+        Date_Requested,
+      });
+    }
+
+    const svaed1 = await doctor.save();
+    const saved2 = await patient.save();
+
+    res.json({ success: true, doctor: svaed1, patient: saved2 });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 router.post("/sample_request", async (req, res) => {
   const payload = req.body;
 
@@ -311,6 +398,14 @@ router.post("/requestsByPatient", async (req, res) => {
   res.json({ orders: patient.samplingRequests });
 });
 
+
+router.post("/bookingsByPatient", async (req, res) => {
+  console.log(req.body);
+  let patient = await Patient.findOne({ email: req.body.patientEmail });
+
+  res.json({ orders: patient.appointmentRequests });
+});
+
 router.post("/requestsByLab", async (req, res) => {
   console.log(req.body);
   let patient = await Lab.findOne({ _id: req.body.labId });
@@ -348,13 +443,10 @@ router.post("/orderUpdate", async (req, res) => {
 router.post("/pressUpdate", async (req, res) => {
   const { Identifier, status } = req.body;
   let found = await Prescription.findOne(Identifier);
-  found.status = status
-  let response = await found.save()
+  found.status = status;
+  let response = await found.save();
   res.json({ response });
 });
-
-
-
 
 router.post("/requestUpdate", async (req, res) => {
   const { labId, orderId, status, patientEmail } = req.body;
@@ -403,6 +495,12 @@ router.post("/getPatient", async (req, res) => {
   res.json(test);
 });
 
+router.post("/getDoctor", async (req, res) => {
+  const { doctorEmail } = req.body;
+  let test = await Doctor.findOne({ email: doctorEmail });
+  res.json(test);
+});
+
 router.post("/editPharmacy", async (req, res) => {
   const { pharmacyId, email, password, fullName, address } = req.body;
   filter = { _id: pharmacyId };
@@ -424,6 +522,21 @@ router.post("/editPatient", async (req, res) => {
   update = { email, password, fullName, address };
   try {
     const response = await Patient.findOneAndUpdate(filter, update);
+    console.log(response);
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/editDoctor", async (req, res) => {
+  const { doctorEmail, email, password, fullName, address } = req.body;
+  filter = { email: doctorEmail };
+  update = { email, password, fullName, address };
+  try {
+    const response = await Doctor.findOneAndUpdate(filter, update);
     console.log(response);
     return res.json({
       success: true,
@@ -596,7 +709,6 @@ const sendCodePharmacy = async (email) => {
   }
 };
 
-
 const sendCodeLab = async (email) => {
   let random = Math.floor(Math.random() * 999999);
   try {
@@ -620,4 +732,29 @@ const sendCodeLab = async (email) => {
     console.log(error?.toString());
   }
 };
+
+const sendCodeDoctor = async (email) => {
+  let random = Math.floor(Math.random() * 999999);
+  try {
+    const mailOptions = {
+      from: "arrowestates403@gmail.com", // sender address
+      to: email, // list of receivers
+      subject: "Doctor Registeration", // Subject line
+      html: `Your verification code is : ${random}`,
+    };
+
+    transporter.sendMail(mailOptions, async function (err, info) {
+      if (err) {
+        console.log(err?.toString());
+      } else {
+        let found = await Doctor.findOne({ email });
+        found.code = random;
+        await found.save();
+      }
+    });
+  } catch (error) {
+    console.log(error?.toString());
+  }
+};
+
 module.exports = router;
