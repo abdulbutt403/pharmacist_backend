@@ -40,6 +40,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
+        phoneNumber: req.body?.phoneNumber
       });
       if (result) {
         await sendCodePharmacy(email);
@@ -56,6 +57,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
+        phoneNumber: req.body?.phoneNumber
       });
       if (result) {
         await sendCodeLab(email);
@@ -72,6 +74,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
+        phoneNumber: req.body?.phoneNumber
       });
       if (result) {
         await sendCodeDoctor(email);
