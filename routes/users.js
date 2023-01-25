@@ -24,7 +24,13 @@ router.post("/create", async (req, res) => {
     if (found) {
       (success = false), (msg = "Patient already exist");
     } else {
-      result = await Patient.create({ email, password, fullName });
+      result = await Patient.create({
+        email,
+        password,
+        fullName,
+        address: req.body?.address,
+        phoneNumber: req.body?.phoneNumber,
+      });
       if (result) {
         await sendCodePatient(email);
         success = true;
@@ -40,7 +46,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
-        phoneNumber: req.body?.phoneNumber
+        phoneNumber: req.body?.phoneNumber,
       });
       if (result) {
         await sendCodePharmacy(email);
@@ -57,7 +63,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
-        phoneNumber: req.body?.phoneNumber
+        phoneNumber: req.body?.phoneNumber,
       });
       if (result) {
         await sendCodeLab(email);
@@ -74,7 +80,7 @@ router.post("/create", async (req, res) => {
         password,
         fullName,
         address: req.body?.address,
-        phoneNumber: req.body?.phoneNumber
+        phoneNumber: req.body?.phoneNumber,
       });
       if (result) {
         await sendCodeDoctor(email);
@@ -401,16 +407,12 @@ router.post("/requestsByPatient", async (req, res) => {
   res.json({ orders: patient.samplingRequests });
 });
 
-
-
-
 router.post("/bookingsByPatient", async (req, res) => {
   console.log(req.body);
   let patient = await Patient.findOne({ email: req.body.patientEmail });
 
   res.json({ orders: patient.appointmentRequests });
 });
-
 
 router.post("/bookingsByDoctor", async (req, res) => {
   let doctor = await Doctor.findOne({ _id: req.body.doctorId });
@@ -610,7 +612,6 @@ router.post("/createReport", async (req, res) => {
   }
 });
 
-
 router.post("/bookingPrescribe", async (req, res) => {
   const { doctorId, orderId, prescribe, patientEmail } = req.body;
   let doctor = await Doctor.findById(doctorId);
@@ -636,18 +637,14 @@ router.post("/bookingPrescribe", async (req, res) => {
     transporter.sendMail(mailOptions, async function (err, info) {
       if (err) {
         console.log(err?.toString());
-      } 
+      }
     });
   } catch (error) {
     console.log(error?.toString());
   }
 
   res.json({ doctorUpdate, patientUpdate });
-
-
-
 });
-
 
 router.post("/bookingCall", async (req, res) => {
   const { doctorId, orderId, videoConferenceLink, patientEmail } = req.body;
@@ -663,7 +660,6 @@ router.post("/bookingCall", async (req, res) => {
   let doctorUpdate = await doctor.save();
   let patientUpdate = await patient.save();
 
-
   try {
     const mailOptions = {
       from: "arrowestates403@gmail.com", // sender address
@@ -675,7 +671,7 @@ router.post("/bookingCall", async (req, res) => {
     transporter.sendMail(mailOptions, async function (err, info) {
       if (err) {
         console.log(err?.toString());
-      } 
+      }
     });
   } catch (error) {
     console.log(error?.toString());
@@ -683,11 +679,6 @@ router.post("/bookingCall", async (req, res) => {
 
   res.json({ doctorUpdate, patientUpdate });
 });
-
-
-
-
-
 
 router.post("/createTest", async (req, res) => {
   const { labId, title, description, price } = req.body;
