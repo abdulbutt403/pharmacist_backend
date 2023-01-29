@@ -20,8 +20,28 @@ const DoctorSchema = new Schema(
       default: false,
     },
     phoneNumber: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
+    },
+    pmdcNumber: {
+      type: String,
+      default: "",
+    },
+    chargePerHour: {
+      type: String,
+      default: "",
+    },
+    speciality: {
+      type: String,
+      default: "",
+    },
+    timeSlot: {
+      type: String,
+      default: "",
+    },
+    profilePic: {
+      type: String,
+      default: "http://res.cloudinary.com/dmsus6w9v/image/upload/v1675019086/tl3hkggv7vljzpl37b5e.webp",
     },
     address: {
       type: String,
@@ -62,14 +82,14 @@ const DoctorSchema = new Schema(
           required: true,
         },
         videoConferenceLink: {
-            type: String,
-            required: false,
-            default: "N/A"
+          type: String,
+          required: false,
+          default: "N/A",
         },
         Prescripton: {
-            type: String,
-            required: false,
-            default: "N/A"
+          type: String,
+          required: false,
+          default: "N/A",
         },
         patientEmail: {
           type: String,

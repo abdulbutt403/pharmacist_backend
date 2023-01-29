@@ -561,9 +561,30 @@ router.post("/editPatient", async (req, res) => {
 });
 
 router.post("/editDoctor", async (req, res) => {
-  const { doctorEmail, email, password, fullName, address } = req.body;
+  const {
+    doctorEmail,
+    email,
+    password,
+    fullName,
+    address,
+    pmdcNumber,
+    chargePerHour,
+    speciality,
+    timeSlot,
+    profilePic,
+  } = req.body;
   filter = { email: doctorEmail };
-  update = { email, password, fullName, address };
+  update = {
+    email,
+    password,
+    fullName,
+    address,
+    pmdcNumber,
+    chargePerHour,
+    speciality,
+    timeSlot,
+    profilePic,
+  };
   try {
     const response = await Doctor.findOneAndUpdate(filter, update);
     console.log(response);
