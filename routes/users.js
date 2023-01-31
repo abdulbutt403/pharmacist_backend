@@ -197,13 +197,28 @@ router.get("/pharmacy", async (req, res) => {
   res.json({ result });
 });
 
+router.get("/pharmacyLimit", async (req, res) => {
+  let result = await Pharmacist.find().limit(3);
+  res.json({ result });
+});
+
 router.get("/doctors", async (req, res) => {
   let result = await Doctor.find();
   res.json({ result });
 });
 
+router.get("/doctorsLimit", async (req, res) => {
+  let result = await Doctor.find().limit(3);
+  res.json({ result });
+});
+
 router.get("/labs", async (req, res) => {
   let result = await Lab.find();
+  res.json({ result });
+});
+
+router.get("/labsLimit", async (req, res) => {
+  let result = await Lab.find().limit(3);
   res.json({ result });
 });
 
@@ -531,9 +546,10 @@ router.post("/getDoctor", async (req, res) => {
 });
 
 router.post("/editPharmacy", async (req, res) => {
-  const { pharmacyId, email, password, fullName, address } = req.body;
+  const { pharmacyId, email, password, fullName, address, profilePic } =
+    req.body;
   filter = { _id: pharmacyId };
-  update = { email, password, fullName, address };
+  update = { email, password, fullName, address, profilePic };
   try {
     const response = await Pharmacist.findOneAndUpdate(filter, update);
     console.log(response);
@@ -597,9 +613,9 @@ router.post("/editDoctor", async (req, res) => {
 });
 
 router.post("/editLab", async (req, res) => {
-  const { labId, email, password, fullName, address } = req.body;
+  const { labId, email, password, fullName, address, profilePic } = req.body;
   filter = { _id: labId };
-  update = { email, password, fullName, address };
+  update = { email, password, fullName, address, profilePic };
   try {
     const response = await Lab.findOneAndUpdate(filter, update);
     console.log(response);

@@ -23,6 +23,10 @@ const PharmacistSchema = new Schema(
       type: String,
       default: "",
     },
+    profilePic: {
+      type: String,
+      default: "http://res.cloudinary.com/dmsus6w9v/image/upload/v1675138693/wivz6f8afgdrjh0zkg4z.jpg",
+    },
     address: {
       type: String,
       default: "",

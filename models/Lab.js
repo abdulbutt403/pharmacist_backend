@@ -31,6 +31,10 @@ const LabSchema = new Schema(
       type: String,
       default: "",
     },
+    profilePic: {
+      type: String,
+      default: "http://res.cloudinary.com/dmsus6w9v/image/upload/v1675140015/dbc6n2ricyveswog9h7h.jpg",
+    },
     reports: [
       {
         patientName: {
