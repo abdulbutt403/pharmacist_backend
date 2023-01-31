@@ -412,7 +412,7 @@ router.post("/orderByPatient", async (req, res) => {
   console.log(req.body);
   let patient = await Patient.findOne({ email: req.body.patientEmail });
 
-  res.json({ orders: patient.orders });
+  res.json({ orders: patient ? patient.orders : [] });
 });
 
 router.post("/requestsByPatient", async (req, res) => {
