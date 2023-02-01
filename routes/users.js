@@ -104,6 +104,22 @@ router.post("/login", async (req, res) => {
     found = await Lab.findOne({ email, password });
   } else if (role === "DOCTOR") {
     found = await Doctor.findOne({ email, password });
+  } else if (role === "ADMIN") {
+     
+    if(email === 'hafizbutt022@gmail.com' && password === '12345678'){
+      let payload = {};
+
+      payload.role = role;
+      payload.name = 'ADMIN';
+      payload.email = 'hafizbutt022@gmail.com';
+    
+      jwt.sign(payload, jwtToken, { expiresIn: 360000 }, (err, token) => {
+        if (err) throw err;
+        return res.status(200).json({ token });
+      });
+
+      return;
+    }
   }
 
   if (!found)
@@ -115,6 +131,14 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({
       message: "Not Verified",
     });
+
+
+
+  if (found && found.isBlocked)
+  return res.status(401).json({
+    message: "Account Blocked",
+  });
+
 
   delete found.password;
 
@@ -193,32 +217,37 @@ router.post("/verify", async (req, res) => {
 });
 
 router.get("/pharmacy", async (req, res) => {
-  let result = await Pharmacist.find();
+  let result = await Pharmacist.find({ isBlocked: false });
   res.json({ result });
 });
 
 router.get("/pharmacyLimit", async (req, res) => {
-  let result = await Pharmacist.find().limit(3);
+  let result = await Pharmacist.find({ isBlocked: false }).limit(3);
   res.json({ result });
 });
 
 router.get("/doctors", async (req, res) => {
-  let result = await Doctor.find();
+  let result = await Doctor.find({ isBlocked: false });
   res.json({ result });
 });
 
 router.get("/doctorsLimit", async (req, res) => {
-  let result = await Doctor.find().limit(3);
+  let result = await Doctor.find({ isBlocked: false }).limit(3);
   res.json({ result });
 });
 
 router.get("/labs", async (req, res) => {
-  let result = await Lab.find();
+  let result = await Lab.find({ isBlocked: false });
   res.json({ result });
 });
 
 router.get("/labsLimit", async (req, res) => {
-  let result = await Lab.find().limit(3);
+  let result = await Lab.find({ isBlocked: false }).limit(3);
+  res.json({ result });
+});
+
+router.get("/patients", async (req, res) => {
+  let result = await Patient.find();
   res.json({ result });
 });
 
@@ -949,3 +978,86 @@ const sendCodeDoctor = async (email) => {
 };
 
 module.exports = router;
+
+
+
+
+router.get("/pharmacyAdmin", async (req, res) => {
+  let result = await Pharmacist.find();
+  res.json({ result });
+});
+
+router.get("/doctorsAdmin", async (req, res) => {
+  let result = await Doctor.find();
+  res.json({ result });
+});
+
+router.get("/labsAdmin", async (req, res) => {
+  let result = await Lab.find();
+  res.json({ result });
+});
+
+
+router.post("/block", async (req, res) => {
+  try {
+    let model;
+    switch (req.body.role) {
+      case "doctor":
+        model = Doctor;
+        break;
+      case "patient":
+        model = Patient;
+        break;
+      case "lab":
+        model = Lab;
+        break;
+      case "pharmacist":
+        model = Pharmacist;
+        break;
+      default:
+        return res.status(400).send("Invalid role");
+    }
+
+    const obj = await model.findOne({ _id: req.body.id });
+    if (!obj) return res.status(404).send(`${req.body.role} not found`);
+
+    obj.isBlocked = true;
+    const saved = await obj.save();
+    res.send(saved);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+
+
+router.post("/unblock", async (req, res) => {
+  try {
+    let model;
+    switch (req.body.role) {
+      case "doctor":
+        model = Doctor;
+        break;
+      case "patient":
+        model = Patient;
+        break;
+      case "lab":
+        model = Lab;
+        break;
+      case "pharmacist":
+        model = Pharmacist;
+        break;
+      default:
+        return res.status(400).send("Invalid role");
+    }
+
+    const obj = await model.findOne({ _id: req.body.id });
+    if (!obj) return res.status(404).send(`${req.body.role} not found`);
+
+    obj.isBlocked = false;
+    const saved = await obj.save();
+    res.send(saved);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
