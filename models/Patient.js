@@ -179,6 +179,10 @@ const PatientSchema = new Schema(
           type: String,
           required: true,
         },
+        Time_Requested: {
+          type: String,
+          required: true,
+        },
       },
     ],
   },

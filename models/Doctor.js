@@ -41,7 +41,8 @@ const DoctorSchema = new Schema(
     },
     profilePic: {
       type: String,
-      default: "http://res.cloudinary.com/dmsus6w9v/image/upload/v1675019086/tl3hkggv7vljzpl37b5e.webp",
+      default:
+        "http://res.cloudinary.com/dmsus6w9v/image/upload/v1675019086/tl3hkggv7vljzpl37b5e.webp",
     },
     address: {
       type: String,
@@ -119,6 +120,21 @@ const DoctorSchema = new Schema(
           type: String,
           required: true,
         },
+        Time_Requested: {
+          type: String,
+          required: true,
+        }
+      },
+    ],
+    timeSlot: [
+      {
+        time: {
+          type: String,
+        },
+        booked: {
+          type: Boolean,
+          default: false
+        }
       },
     ],
   },

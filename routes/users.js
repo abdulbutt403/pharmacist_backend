@@ -321,6 +321,7 @@ router.post("/booking_request", async (req, res) => {
     state,
     patientEmail,
     Identifier,
+    Time_Requested
   } = payload;
 
   try {
@@ -334,6 +335,7 @@ router.post("/booking_request", async (req, res) => {
         Details,
         Identifier,
         Date_Requested,
+        Time_Requested
       });
     }
     let patient = await Patient.findOne({ email: patientEmail });
@@ -346,6 +348,7 @@ router.post("/booking_request", async (req, res) => {
         Details,
         Identifier,
         Date_Requested,
+        Time_Requested
       });
     }
 
@@ -412,7 +415,61 @@ router.post("/orderByPatient", async (req, res) => {
   console.log(req.body);
   let patient = await Patient.findOne({ email: req.body.patientEmail });
 
-  res.json({ orders: patient.orders });
+  res.json({ orders: patient ? patient.orders : [] });
+});
+
+router.post("/addSlot", async (req, res) => {
+  let doctor = await Doctor.findOne({ email: req.body.doctorEmail });
+  const slotExists = doctor.timeSlot.find((s) => s.time === req.body.slot.time);
+  if (!slotExists) {
+    doctor.timeSlot.push(req.body.slot);
+    var svaed1 = await doctor.save();
+  }
+
+  res.json({ update: svaed1 ? svaed1 : null });
+});
+
+router.post("/getSlots", async (req, res) => {
+  let doctor = await Doctor.findOne({ email: req.body.doctorEmail });
+  let list2 = [];
+  if (doctor) {
+    list2 = doctor.timeSlot;
+  }
+
+  res.json({ list: list2 });
+});
+
+router.post("/deleteSlot", async (req, res) => {
+  try {
+    const doctor = await Doctor.findOne({ _id: req.body.id });
+    if (!doctor) return res.status(404).send("Doctor not found");
+
+    const slotIndex = doctor.timeSlot.findIndex(s => s._id.toString() === req.body.slotId);
+    if (slotIndex === -1) return res.status(400).send("Slot not found");
+
+    doctor.timeSlot.splice(slotIndex, 1);
+    const saved = await doctor.save();
+    res.send(saved.timeSlot);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+
+router.post("/freeSlot", async (req, res) => {
+  try {
+    const doctor = await Doctor.findOne({ _id: req.body.id });
+    if (!doctor) return res.status(404).send("Doctor not found");
+
+    const slot = doctor.timeSlot.find(s => s._id.toString() === req.body.slotId);
+    if (!slot) return res.status(400).send("Slot not found");
+
+    slot.booked = false;
+    const saved = await doctor.save();
+    res.send(saved.timeSlot);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
 
 router.post("/requestsByPatient", async (req, res) => {
